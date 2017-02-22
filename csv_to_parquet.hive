@@ -1,0 +1,34 @@
+--Parquet can be a more efficient format as compared to csv for several reasons. Among them,
+--if you are using Amazon Athena, you will only be charged for reads on the columns you query
+--when your data is in parquet format.
+
+--To use this script, an EMR instance is required. The hive code can be run as a script or 
+--interactively.
+
+--Add latest Hive jar. Path current as of 2/22/17.
+ADD JAR /usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core-2.1.1-amzn-0.jar;
+
+--Create table with data from your S3 bucket.
+--This hive command assumes you are using csv and have launched your EMR cluster in the east region
+CREATE EXTERNAL TABLE parquet_test (
+  col1 int,
+  col2 int,
+  col3 int,
+  col4 bigint,
+  col5 float )
+row format delimited fields terminated by ','
+LOCATION 's3://my-bucket/my-csv/';
+
+
+--Create new parquet table back to store data in S3.
+CREATE EXTERNAL TABLE  parquet  (
+  col1 int,
+  col2 int,
+  col3 int,
+  col4 bigint,
+  col5 float )   STORED AS PARQUET
+LOCATION 's3://my-bucket/my-parquet';
+
+--Insert data into new table.
+INSERT OVERWRITE TABLE parquet_hive
+SELECT * FROM parquet;
